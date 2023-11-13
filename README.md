@@ -2,7 +2,8 @@
 # Haskell Project - Web Data Harvesting App
 
 ## Project Overview
-This is a group project consisting of 4 students. The goal is to implement a stack-based Haskell app for harvesting information from the Web and saving it in a database. The application will allow users to query the data stored in the database.
+This is a group project consisting of 4 students. The goal is to implement a stack-based Haskell app for harvesting information from the Web and saving it in a database. The application will allow users to query the data stored in the database with UI
+
 
 ### Project Name
 - **haskell-project**
