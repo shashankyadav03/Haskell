@@ -21,7 +21,7 @@ WeatherWander is a command-line application developed in Haskell that suggests t
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/WeatherWander.git
+   git clone https://github.com/shashankyadav03/WeatherWander.git
    ```
 2. Navigate to the project directory:
    ```sh
