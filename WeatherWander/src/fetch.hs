@@ -15,10 +15,10 @@ data WeatherData = WeatherData {
 -- Make sure WeatherData is an instance of FromJSON to parse the JSON response
 instance FromJSON WeatherData where
     -- Implement JSON parsing according to the structure of your API response
-
+API_KEY = "Use response.json meanwhile"
 -- | Fetches weather data for a given city from the weather API.
 fetchWeatherData :: String -> IO (Either String WeatherData)
 fetchWeatherData city = do
-    let apiUrl = "http://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=" ++ city
+    let apiUrl = "http://api.weatherstack.com/current?access_key=" ++ API_KEY ++"&query="++ city
     response <- simpleHttp apiUrl
     return $ eitherDecode response :: IO (Either String WeatherData)
