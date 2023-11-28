@@ -22,3 +22,10 @@ fetchWeatherData city = do
     let apiUrl = "http://api.weatherstack.com/current?access_key=" ++ API_KEY ++"&query="++ city
     response <- simpleHttp apiUrl
     return $ eitherDecode response :: IO (Either String WeatherData)
+
+-- function to use response.json as a response
+fetchWeatherData' :: String -> IO (Either String WeatherData)
+fetchWeatherData' city = do
+    response <- B.readFile "response.json"
+    return $ eitherDecode response :: IO (Either String WeatherData)
+    
