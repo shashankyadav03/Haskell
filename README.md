@@ -25,7 +25,7 @@ WeatherWander is a command-line application developed in Haskell that suggests t
    ```
 2. Navigate to the project directory:
    ```sh
-   cd WeatherWander
+   cd haskell-project
    ```
 3. Build the project:
    ```sh
