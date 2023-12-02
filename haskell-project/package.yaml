@@ -17,10 +17,11 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-project#readme>
+description:         Please see the README on GitHub at <https://github.com/shashankyadav03/WeatherWander/#readme>
 
 dependencies:
 - base >= 4.7 && < 5
+- transformers >= 0.5 && < 0.6
 
 ghc-options:
 - -Wall
