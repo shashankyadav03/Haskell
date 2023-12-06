@@ -1,41 +1,54 @@
--- src/Database.hs
+-- Database.hs
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database
-  ( connectDB,
-    getAllPersons,
-    insertPerson,
-    deletePerson,
-    Person (..),
-  )
-where
+  ( connectAndCreateTable
+  , insertDataFromCSV
+  , queryTableContent
+  ) where
 
 import Database.SQLite.Simple
-import Database.SQLite.Simple.FromRow
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Vector as V
+import Data.Char (ord)
+import Data.Csv
 
-data Person = Person
-  { personId :: Int,
-    personName :: String,
-    personEmail :: String
-  }
-  deriving (Show)
+data Legend = Legend { rank :: String, name :: String, village :: String } deriving (Show)
 
-instance FromRow Person where
-  fromRow = Person <$> field <*> field <*> field
+instance FromRow Legend where
+  fromRow = Legend <$> field <*> field <*> field
 
-connectDB :: IO Connection
-connectDB = do
-  conn <- open "test.db"
-  execute_ conn "CREATE TABLE IF NOT EXISTS users1 (id INTEGER PRIMARY KEY, username TEXT NOT NULL, email TEXT NOT NULL)"
-  return conn
+-- Add FromNamedRecord and ToRow instances
+instance FromNamedRecord Legend where
+  parseNamedRecord r = Legend <$> r .: "Rank" <*> r .: "Name" <*> r .: "Village"
 
-getAllPersons :: Connection -> IO [Person]
-getAllPersons conn = query_ conn "SELECT * FROM users1"
+instance ToRow Legend where
+  toRow (Legend a b c) = toRow (a, b, c)
 
-insertPerson :: Connection -> String -> String -> IO ()
-insertPerson conn name email =
-  execute conn "INSERT INTO users1 (username, email) VALUES (?, ?)" (name, email)
+-- Connect to SQLite database, create table, and insert data
+connectAndCreateTable :: IO ()
+connectAndCreateTable = do
+  conn <- open "testcsv.db"
+  execute_ conn "DROP TABLE IF EXISTS konoha"
+  execute_ conn "CREATE TABLE IF NOT EXISTS konoha (Rank TEXT, Name TEXT, Village TEXT)"
+  insertDataFromCSV conn
+  queryTableContent conn
+  close conn
 
-deletePerson :: Connection -> Int -> IO ()
-deletePerson conn personId =
-  execute conn "DELETE FROM users1 WHERE id = ?" (Only personId)
+-- Insert data from CSV into the table
+insertDataFromCSV :: Connection -> IO ()
+insertDataFromCSV conn = do
+  csvData <- BL.readFile "testcsvdb.csv"
+  case decodeByName csvData of
+    Left err -> putStrLn $ "Error decoding CSV: " ++ err
+    Right (header, dataRows) -> do
+      putStrLn "Decoded data:"
+      print (dataRows :: V.Vector Legend)
+      executeMany conn "INSERT INTO konoha (Rank, Name, Village) VALUES (?, ?, ?)" (V.toList (dataRows :: V.Vector Legend))
+
+-- Query and print the contents of the table
+queryTableContent :: Connection -> IO ()
+queryTableContent conn = do
+  putStrLn "Table content after insertion:"
+  rows <- query_ conn "SELECT * FROM konoha" :: IO [Legend]
+  mapM_ print rows
