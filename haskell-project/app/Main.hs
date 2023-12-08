@@ -1,10 +1,13 @@
-module Main (main) where
+module Main where
 
-import qualified Fetch (fetchWeatherData'')
+import Fetch (fetchWeatherData)
 -- import Lib
 -- import Database (queryPlaces, Place)
 -- import Parse (parseArgs)
 import System.Environment (getArgs)
+import Control.Monad.Except (runExceptT)
+import qualified Data.ByteString.Lazy.Char8 as BC
+
 
 -- Main function, entry point of the application.
 main :: IO ()
@@ -13,23 +16,9 @@ main = do
     args <- getArgs
     case args of
         [location] -> do
-            weatherResult <- fetchWeatherData'' location
-            putStrLn ("Usage: WeatherWander " ++ show weatherResult)
-        [] -> putStrLn "Usage: WeatherWander <location>"
-        _  -> putStrLn "Usage: WeatherWander <location>"
-    -- case parseArgs args of
-    --     Just city -> do
-    --         weatherResult <- fetchWeatherData'' city
-    --         putStrLn "Usage: WeatherWander" ++ show weatherResult
-    --         case weatherResult of
-    --             Right weatherData -> do
-    --                 placesToVisit <- queryPlaces city weatherData
-    --                 displayResults city placesToVisit
-    --             Left error -> putStrLn $ "Error fetching weather data: " ++ error
-    --     Nothing -> putStrLn "Usage: WeatherWander" ++ show args
-
--- Display the recommended places to visit.
--- displayResults :: String -> [City] -> IO ()
--- displayResults city places = do
---     putStrLn $ "Places to visit in " ++ city ++ ":"
---     mapM_ (putStrLn . show) places
+            result <- runExceptT $ fetchWeatherData location
+            case result of
+                Right response -> BC.putStrLn response
+                Left errorMsg -> putStrLn $ "Failed to fetch weather data: " ++ errorMsg
+        _ -> putStrLn "Usage: WeatherWander <LOCATION>"
+    putStrLn "WeatherWander finished"

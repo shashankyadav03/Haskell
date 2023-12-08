@@ -22,6 +22,10 @@ description:         Please see the README on GitHub at <https://github.com/shas
 dependencies:
 - base >= 4.7 && < 5
 - transformers >= 0.5 && < 0.6
+- aeson >= 2.1 && < 3
+- http-conduit
+- mtl
+- bytestring
 
 ghc-options:
 - -Wall
@@ -35,7 +39,13 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  source-dirs: src
+  source-dirs: 
+  - src
+  - app
+  dependencies: 
+  - bytestring
+  - http-conduit
+  - sqlite-simple
 
 executables:
   haskell-project-exe:
