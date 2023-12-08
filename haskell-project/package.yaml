@@ -21,6 +21,10 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- sqlite-simple >= 0.4 && < 0.5
+- bytestring
+- cassava
+- vector
 
 ghc-options:
 - -Wall
