@@ -6,7 +6,7 @@ cabal-version: 2.2
 
 name:           haskell-project
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/haskell-project#readme>
+description:    Please see the README on GitHub at <https://github.com/shashankyadav03/WeatherWander/#readme>
 homepage:       https://github.com/githubuser/haskell-project#readme
 bug-reports:    https://github.com/githubuser/haskell-project/issues
 author:         Author name here
@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      Fetch
+      Main
       Database
       Lib
       Parse
@@ -34,14 +36,18 @@ library
       Paths_haskell_project
   hs-source-dirs:
       src
+      app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
+    , http-conduit
+    , mtl
+    , transformers ==0.5.*
     , cassava
     , sqlite-simple ==0.4.*
     , vector
-    , aeson
   default-language: Haskell2010
 
 executable haskell-project-exe
@@ -54,11 +60,14 @@ executable haskell-project-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
-    , cassava
-    , aeson
     , haskell-project
+    , http-conduit
+    , mtl
+    , transformers ==0.5.*
+    , cassava
     , sqlite-simple ==0.4.*
     , vector
   default-language: Haskell2010
@@ -74,11 +83,14 @@ test-suite haskell-project-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
-    , cassava
-    , aeson
     , haskell-project
+    , http-conduit
+    , mtl
+    , transformers ==0.5.*
+    , cassava
     , sqlite-simple ==0.4.*
     , vector
   default-language: Haskell2010
