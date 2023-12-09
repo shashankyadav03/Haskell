@@ -39,7 +39,7 @@ connectAndCreateTable city rain temp = do
 -- Insert data from CSV into the table
 insertDataFromCSV :: Connection -> IO ()
 insertDataFromCSV conn = do
-  csvData <- BL.readFile "data2.csv"
+  csvData <- BL.readFile "cityactivities.csv"
   case decodeByName csvData of
     Left err -> putStrLn $ "Error decoding CSV: " ++ err
     Right (header, dataRows) -> do
