@@ -1,0 +1,76 @@
+City,MinTemp,MaxTemp,Rain,Activities
+London,0,5,no,Ice Skating
+London,6,15,no,Museum Visit
+London,16,25,no,Outdoor Concert
+London,26,35,no,Picnic in the Park
+London,35,100,yes,Christmas Market
+Paris,0,5,no,Ice Skating
+Paris,6,15,yes,Indoor Museum Visit
+Paris,16,25,yes,Outdoor Concert
+Paris,26,35,yes,Picnic by the Seine
+Paris,35,100,yes,Wine Tasting
+New York,0,5,no,Ice Skating
+New York,6,15,yes,Indoor Museum Visit
+New York,16,25,yes,Broadway Show
+New York,26,35,yes,Central Park Picnic
+New York,35,100,no,Indoor Jazz Concert
+Tokyo,0,5,no,Hot Springs Visit
+Tokyo,6,15,yes,Cherry Blossom Viewing
+Tokyo,16,25,yes,Sumo Wrestling Match
+Tokyo,26,35,yes,Sushi Making Class
+Tokyo,35,100,yes,Ramen Tasting
+Sydney,0,5,no,Beach Bonfire
+Sydney,6,15,yes,Coastal Walk
+Sydney,16,25,yes,Surfing Lesson
+Sydney,26,35,no,Aquarium Visit
+Sydney,35,100,no,Opera House Tour
+Rio de Janeiro,0,5,yes,Samba Dance Class
+Rio de Janeiro,6,15,yes,Botanical Garden Visit
+Rio de Janeiro,16,25,yes,Beach Volleyball
+Rio de Janeiro,26,35,yes,Samba Parade
+Rio de Janeiro,35,100,yes,Copacabana Sunset
+Cape Town,0,5,yes,Table Mountain Hike
+Cape Town,6,15,yes,Winery Tour
+Cape Town,16,25,yes,Safari Adventure
+Cape Town,26,35,yes,Beach Picnic
+Cape Town,35,100,yes,Braai (BBQ) Party
+Dubai,0,5,no,Ski Dubai
+Dubai,6,15,yes,Desert Safari
+Dubai,16,25,yes,Shopping in the Souks
+Dubai,26,35,yes,Water Park Day
+Dubai,35,100,no,Indoor Skiing
+Mumbai,0,5,yes,Street Food Tour
+Mumbai,6,15,yes,Bollywood Movie Night
+Mumbai,16,25,yes,Elephanta Caves Visit
+Mumbai,26,35,yes,Beach Cricket
+Mumbai,35,100,yes,Monsoon Trek
+Berlin,0,5,yes,Christmas Market
+Berlin,6,15,yes,Bike Tour
+Berlin,16,25,yes,Beer Garden Evening
+Berlin,26,35,yes,Museum Island Exploration
+Berlin,35,100,yes,Outdoor Film Festival
+Beijing,0,5,yes,Ice Lantern Festival
+Beijing,6,15,yes,Forbidden City Visit
+Beijing,16,25,yes,Great Wall Hiking
+Beijing,26,35,yes,Summer Palace Boat Ride
+Beijing,35,100,yes,Peking Opera Show
+Bangkok,0,5,yes,Thai Cooking Class
+Bangkok,6,15,yes,Temple of the Emerald Buddha
+Bangkok,16,25,yes,Floating Market Tour
+Bangkok,26,35,yes,Songkran Water Festival
+Bangkok,35,100,yes,Tuk-Tuk Night Tour
+Toronto,0,5,yes,Ice Wine Tasting
+Toronto,6,15,yes,Art Gallery Visit
+Toronto,16,25,yes,Toronto Islands Picnic
+Toronto,26,35,yes,Blue Jays Baseball Game
+Toronto,35,100,no,CN Tower EdgeWalk
+Istanbul,0,5,yes,Turkish Bath Experience
+Istanbul,6,15,yes,Bosphorus Cruise
+Istanbul,16,25,yes,Hagia Sophia Tour
+Istanbul,26,35,yes,Grand Bazaar Shopping
+Istanbul,35,100,yes,Rooftop Hookah Lounge
+Amsterdam,0,5,no,Ice Skating
+Amsterdam,6,15,yes,Tulip Garden Visit
+Amsterdam,16,25,yes,Canal Cruise
+Amsterdam,26,35,yes,Vondelpark Picnic
+Amsterdam,35,100,yes,Red Light District Tour
