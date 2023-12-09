@@ -26,13 +26,14 @@ instance ToRow Legend where
   toRow (Legend a b c d e) = toRow (a, b, c, d, e)
 
 -- Connect to SQLite database, create table, and insert data
-connectAndCreateTable :: IO ()
-connectAndCreateTable = do
+-- connectAndCreateTable to include dynamic parameters
+connectAndCreateTable :: String -> String -> Int -> IO ()
+connectAndCreateTable city rain temp = do
   conn <- open "testcsv.db"
   execute_ conn "DROP TABLE IF EXISTS activities"
   execute_ conn "CREATE TABLE IF NOT EXISTS activities (City TEXT, MinTemp NUM, MaxTemp NUM, Rain TEXT, Activities TEXT)"
   insertDataFromCSV conn
-  queryTableContent conn
+  queryTableContent conn city rain temp
   close conn
 
 -- Insert data from CSV into the table
@@ -47,8 +48,9 @@ insertDataFromCSV conn = do
       executeMany conn "INSERT INTO activities (City, MinTemp, MaxTemp, Rain, Activities) VALUES (?, ?, ?, ?, ?)" (V.toList (dataRows :: V.Vector Legend))
 
 -- Query and print the contents of the table
-queryTableContent :: Connection -> IO ()
-queryTableContent conn = do
+-- queryTableContent to accept dynamic parameters
+queryTableContent :: Connection -> String -> String -> Int -> IO ()
+queryTableContent conn city rain temp = do
   putStrLn "Table content after insertion:"
-  rows <- query_ conn "SELECT * FROM activities WHERE City = 'London' AND Rain = 'no' AND MinTemp <= 15 AND MaxTemp >= 15" :: IO [Legend]
+  rows <- query conn "SELECT * FROM activities WHERE City = ? AND Rain = ? AND MinTemp <= ? AND MaxTemp >= ?" (city, rain, temp, temp) :: IO [Legend]
   mapM_ print rows
