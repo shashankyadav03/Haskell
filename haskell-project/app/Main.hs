@@ -3,7 +3,7 @@ module Main where
 import Fetch (fetchWeatherData)
 import System.Environment (getArgs)
 import Control.Monad.Except (runExceptT)
-import qualified Data.ByteString.Lazy.Char8 as BC
+import qualified Data.ByteString.Lazy.Char8 as B
 import Lib
 import Database
 import Parse
@@ -19,16 +19,16 @@ main = do
             [location] -> do
                 result <- runExceptT $ fetchWeatherData location
                 case result of
-                    Right response -> BC.putStrLn response
+                    Right response -> B.writeFile "data/response.json" response
                     Left errorMsg -> putStrLn $ "Failed to fetch weather data: " ++ errorMsg
             _ -> putStrLn "Usage: WeatherWander <LOCATION>"
-        (temp, rain) <- parse
-        case (temp, rain) of
-            (temp, rain) -> do
-                putStrLn $ "Received values from parse: Temperature = " ++ show temp ++ ", Rain Status = " ++ show rain
-            -- Continue with the rest of your main logic using temp and rain
+
+        (place, temp, rain) <- parse
+        case (place, temp, rain) of
+            (place, temp, rain) -> do
+                putStrLn $ "Checking places to visit in " ++ show place ++ " with temperature = " ++ show temp ++ ", Rain Status = " ++ show rain
             _ -> putStrLn "Failed to parse weather data"
-        let city = "London"
+        let city = place
             rainStatus = rain
             temperature = temp
 
