@@ -58,7 +58,13 @@ instance FromJSON Location
 instance FromJSON Current
 instance FromJSON WeatherData
 
-parseWeatherData' :: String -> IO ()
+-- Determine rain status based on precipitation value
+getRainStatus :: Int -> String
+getRainStatus precipValue
+    | precipValue < 50 = "no"
+    | otherwise = "yes"
+
+parseWeatherData' :: String -> IO (Int, Int, String)
 parseWeatherData' filePath = do
     -- Read the JSON file
     jsonContents <- B.readFile filePath
@@ -68,11 +74,17 @@ parseWeatherData' filePath = do
 
     -- Parse JSON
     case eitherDecode lazyJsonContents of
-        Left err -> putStrLn $ "Error decoding JSON: " ++ err
+        Left err -> do
+            putStrLn $ "Error decoding JSON: " ++ err
+            return (0, 0, "0")  -- Return default values or handle the error as needed
         Right weatherData -> do
             -- Print or process the parsed data as needed
-            putStrLn $ "Temperature: " ++ show (temperature (current weatherData))
-            putStrLn $ "Precipitation: " ++ show (precip (current weatherData))
+            let temp = temperature (current weatherData)
+                preci = precip (current weatherData)
+                rainStatus = getRainStatus preci
+            return (temp, preci, rainStatus)
 
-parse :: IO ()
-parse = parseWeatherData' "C:/Users/athar/OneDrive/Documents/WeatherWander/haskell-project/data/response.json"
+parse :: IO (Int, String)
+parse = do
+    (temp, preci, rainStatus) <- parseWeatherData' "C:/Users/DELL/Desktop/test-stage/WeatherWander/haskell-project/data/response.json"
+    return (temp,rainStatus) 
