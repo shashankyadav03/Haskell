@@ -1,12 +1,12 @@
 module Main where
 
 import Fetch (fetchWeatherData)
--- import Lib
--- import Database (queryPlaces, Place)
--- import Parse (parseArgs)
 import System.Environment (getArgs)
 import Control.Monad.Except (runExceptT)
 import qualified Data.ByteString.Lazy.Char8 as BC
+import Lib
+import Database
+import Parse
 
 
 -- Main function, entry point of the application.
@@ -22,3 +22,7 @@ main = do
                 Left errorMsg -> putStrLn $ "Failed to fetch weather data: " ++ errorMsg
         _ -> putStrLn "Usage: WeatherWander <LOCATION>"
     putStrLn "WeatherWander finished"
+    parse
+    let city = "London"
+      rain = "no"
+      temp = 15

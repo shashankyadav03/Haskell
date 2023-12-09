@@ -1,6 +1,7 @@
 {
     "request": {
         "type": "City",
+        "requestType": "City",
         "query": "London, United Kingdom",
         "language": "en",
         "unit": "m"

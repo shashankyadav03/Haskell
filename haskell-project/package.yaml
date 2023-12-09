@@ -22,11 +22,13 @@ description:         Please see the README on GitHub at <https://github.com/shas
 dependencies:
 - base >= 4.7 && < 5
 - transformers >= 0.5 && < 0.6
-- aeson >= 2.1 && < 3
+- aeson
 - http-conduit
 - mtl
 - bytestring
-
+- sqlite-simple >= 0.4 && < 0.5
+- cassava
+- vector
 ghc-options:
 - -Wall
 - -Wcompat
