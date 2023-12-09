@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Parse where
 
@@ -53,7 +54,12 @@ data WeatherData = WeatherData
   } deriving (Generic, Show)
 
 -- Instances for automatic derivation
-instance FromJSON Request
+instance FromJSON Request where
+    parseJSON = withObject "Request" $ \v -> Request
+        <$> v .: "type"
+        <*> v .: "query"
+        <*> v .: "language"
+        <*> v .: "unit"
 instance FromJSON Location
 instance FromJSON Current
 instance FromJSON WeatherData
@@ -64,8 +70,8 @@ getRainStatus precipValue
     | precipValue < 50 = "no"
     | otherwise = "yes"
 
-parseWeatherData' :: String -> IO (Int, Int, String)
-parseWeatherData' filePath = do
+parseWeatherData :: String -> IO (String,Int, Int, String)
+parseWeatherData filePath = do
     -- Read the JSON file
     jsonContents <- B.readFile filePath
 
@@ -76,15 +82,16 @@ parseWeatherData' filePath = do
     case eitherDecode lazyJsonContents of
         Left err -> do
             putStrLn $ "Error decoding JSON: " ++ err
-            return (0, 0, "0")  -- Return default values or handle the error as needed
+            return ("0",0, 0, "0")  -- Return default values or handle the error as needed
         Right weatherData -> do
             -- Print or process the parsed data as needed
-            let temp = temperature (current weatherData)
+            let place = name (location weatherData)
+                temp = temperature (current weatherData)
                 preci = precip (current weatherData)
                 rainStatus = getRainStatus preci
-            return (temp, preci, rainStatus)
+            return (place, temp, preci, rainStatus)
 
-parse :: IO (Int, String)
+parse :: IO (String, Int, String)
 parse = do
-    (temp, preci, rainStatus) <- parseWeatherData' "C:/Users/DELL/Desktop/test-stage/WeatherWander/haskell-project/data/response.json"
-    return (temp,rainStatus) 
+    (place, temp, preci, rainStatus) <- parseWeatherData "data/response.json"
+    return (place,temp,rainStatus) 
