@@ -40,11 +40,13 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       aeson
+    , ansi-terminal
     , base >=4.7 && <5
     , bytestring
     , cassava
     , http-conduit
     , mtl
+    , split
     , sqlite-simple
     , transformers ==0.5.*
     , vector
@@ -61,12 +63,14 @@ executable haskell-project-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , ansi-terminal
     , base >=4.7 && <5
     , bytestring
     , cassava
     , haskell-project
     , http-conduit
     , mtl
+    , split
     , sqlite-simple ==0.4.*
     , transformers ==0.5.*
     , vector
@@ -84,12 +88,14 @@ test-suite haskell-project-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , ansi-terminal
     , base >=4.7 && <5
     , bytestring
     , cassava
     , haskell-project
     , http-conduit
     , mtl
+    , split
     , sqlite-simple ==0.4.*
     , transformers ==0.5.*
     , vector
