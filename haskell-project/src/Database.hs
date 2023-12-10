@@ -27,7 +27,7 @@ instance ToRow Legend where
 
 -- Connect to SQLite database, create table, and insert data
 -- connectAndCreateTable to include dynamic parameters
-connectAndCreateTable :: String -> String -> Int -> IO ()
+connectAndCreateTable :: String -> String -> Float -> IO ()
 connectAndCreateTable city rain temp = do
   conn <- open "testcsv.db"
   execute_ conn "DROP TABLE IF EXISTS activities"
@@ -49,7 +49,7 @@ insertDataFromCSV conn = do
 
 -- Query and print the contents of the table
 -- queryTableContent to accept dynamic parameters
-queryTableContent :: Connection -> String -> String -> Int -> IO ()
+queryTableContent :: Connection -> String -> String -> Float -> IO ()
 queryTableContent conn city rain temp = do
   putStrLn "Table content after insertion:"
   rows <- query conn "SELECT * FROM activities WHERE City = ? AND Rain = ? AND MinTemp <= ? AND MaxTemp >= ?" (city, rain, temp, temp) :: IO [Legend]
