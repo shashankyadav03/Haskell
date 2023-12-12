@@ -15,7 +15,7 @@ import System.Console.ANSI
 main :: IO ()
 main = do
         setSGR [SetConsoleIntensity BoldIntensity]
-        putStrLn "\nOi mate, fancy a laugh with some cracking activities?\nStarting WeatherWander..........\n"
+        putStrLn "\nStarting WeatherWander..........\n"
         setSGR [Reset]
         args <- getArgs
         case args of
@@ -28,9 +28,8 @@ main = do
 
         (place, temp, rain) <- parse
         case (place, temp, rain) of
-            (place, temp, rain) -> do
-                putStrLn $ "Checking places to visit in " ++ show place ++ " with temperature = " ++ show temp ++ ", Rain Status = " ++ show rain
-            _ -> putStrLn "Failed to parse weather data"
+            (placeResult, tempResult, rainResult) -> do
+                putStrLn $ "Checking places to visit in " ++ show placeResult ++ " with temperature = " ++ show tempResult ++ ", Rain Status = " ++ show rainResult
             
         let city = place
             rainStatus = rain
@@ -38,5 +37,5 @@ main = do
 
         connectAndCreateTable city rainStatus temperature
         setSGR [SetConsoleIntensity BoldIntensity]
-        putStrLn "\nHave a cracking time!"
+        putStrLn "\nHave a Great time!"
         setSGR [Reset]
