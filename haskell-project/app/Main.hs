@@ -1,41 +1,50 @@
-module Main(main) where
+module Main where
 
 import Fetch (fetchWeatherData)
+import Database (connectAndCreateTable)
+import Parse (parse)
 import System.Environment (getArgs)
 import Control.Monad.Except (runExceptT)
 import qualified Data.ByteString.Lazy.Char8 as B
--- import Lib
-import Database(connectAndCreateTable)
-import Parse(parse)
--- import Cmm (CmmNode(args))
 import System.Console.ANSI
+import System.IO (localeEncoding)
+import qualified Data.ByteString.Lazy as B
+import Control.Exception (try, IOException)
+import Control.Monad (when)
 
-
--- Main function, entry point of the application.
 main :: IO ()
 main = do
-        setSGR [SetConsoleIntensity BoldIntensity]
-        putStrLn "\nStarting WeatherWander..........\n"
-        setSGR [Reset]
-        args <- getArgs
-        case args of
-            [location] -> do
-                result <- runExceptT $ fetchWeatherData location
-                case result of
-                    Right response -> B.writeFile "data/response.json" response
-                    Left errorMsg -> putStrLn $ "Failed to fetch weather data: " ++ errorMsg
-            _ -> putStrLn "Usage: WeatherWander <LOCATION>"
+    putStrLn "Starting WeatherWander"
+    args <- getArgs
+    let location = getLocation args
+    fetchDataAndProcess location
 
-        (place, temp, rain) <- parse
-        case (place, temp, rain) of
-            (placeResult, tempResult, rainResult) -> do
-                putStrLn $ "Checking places to visit in " ++ show placeResult ++ " with temperature = " ++ show tempResult ++ ", Rain Status = " ++ show rainResult
-            
-        let city = place
-            rainStatus = rain
-            temperature = temp
+getLocation :: [String] -> String
+getLocation args = case args of
+    [] -> "London"  -- Default to London if no arguments are provided
+    [loc] -> loc    -- Use the provided argument
+    _ -> "Usage: WeatherWander <LOCATION>"
 
-        connectAndCreateTable city rainStatus temperature
-        setSGR [SetConsoleIntensity BoldIntensity]
-        putStrLn "\nHave a Great time!"
-        setSGR [Reset]
+fetchDataAndProcess :: String -> IO ()
+fetchDataAndProcess location = do
+    result <- runExceptT $ fetchWeatherData location
+    case result of
+        Right response -> do
+            writeFileResult <- try (B.writeFile "data/response.json" response) :: IO (Either IOException ())
+            case writeFileResult of
+                Right _ -> putStrLn "Weather data saved successfully."
+                Left e -> putStrLn $ "Failed to write weather data to file: " ++ show e
+        Left errorMsg -> putStrLn $ "Failed to fetch weather data: " ++ errorMsg
+
+    parsingResult <- try parse :: IO (Either IOException (String, Float, String))
+    case parsingResult of
+        Right (place, temp, rain) -> do
+            putStrLn $ "Checking places to visit in " ++ show place ++ " with temperature = " ++ show temp ++ ", Rain Status = " ++ show rain
+            let city = place
+                rainStatus = rain
+                temperature = temp
+            connectAndCreateTable city rainStatus temperature
+            setSGR [SetConsoleIntensity BoldIntensity]
+            putStrLn "\nHave a cracking time!"
+            setSGR [Reset]
+        Left e -> putStrLn $ "Failed to parse weather data: " ++ show e
