@@ -67,8 +67,8 @@ instance FromJSON WeatherData
 -- Determine rain status based on precipitation value
 getRainStatus :: Float -> String
 getRainStatus precipValue
-    | precipValue < 40 = "Not Raining"
-    | precipValue > 40 && precipValue < 60 = "May Rain"
+    | precipValue < 0.4 = "Not Raining"
+    | precipValue > 0.4 && precipValue < 0.6 = "May Rain"
     | otherwise = "Raining"
 
 parseWeatherData :: String -> IO (String, Float, Float, String)
