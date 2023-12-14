@@ -12,6 +12,25 @@ import Data.Time.Clock
 import Data.Time.Format
 import Database (connectDB, getDbTime)
 
+getLocation :: [String] -> String
+getLocation args = case args of
+    [] -> "London"  -- Default to London if no arguments are provided
+    [loc] -> loc    -- Use the provided argument
+    _ -> "\nUsage: WeatherWander <LOCATION>"
+
+fetchDataAndProcess :: String -> IO ()
+fetchDataAndProcess location = do
+    result <- runExceptT $ fetchWeatherData location
+    case result of
+        Right response -> do
+            putStrLn "Data Fetched from API!"
+            putStrLn "Saving Fetched data to file....."
+            writeFileResult <- try (B.writeFile "data/response.json" response) :: IO (Either IOException ())
+            case writeFileResult of
+                Right _ -> putStrLn "\nWeather data saved successfully!."
+                Left e -> putStrLn $ "\nFailed to write weather data to file: " ++ show e
+        Left errorMsg -> putStrLn $ "\nFailed to fetch weather data: " ++ errorMsg
+
 main :: IO ()
 main = do
     putStrLn "\nStarting WeatherWander......."
@@ -41,23 +60,3 @@ main = do
                             parse val location-- assuming parse is an IO action
                 Nothing -> putStrLn "Failed to parse API time"
         Nothing -> putStrLn "No time data found for the specified location"
-
-getLocation :: [String] -> String
-getLocation args = case args of
-    [] -> "London"  -- Default to London if no arguments are provided
-    [loc] -> loc    -- Use the provided argument
-    _ -> "\nUsage: WeatherWander <LOCATION>"
-
-fetchDataAndProcess :: String -> IO ()
-fetchDataAndProcess location = do
-    result <- runExceptT $ fetchWeatherData location
-    case result of
-        Right response -> do
-            putStrLn "Data Fetched from API!"
-            putStrLn "Saving Fetched data to file....."
-            writeFileResult <- try (B.writeFile "data/response.json" response) :: IO (Either IOException ())
-            case writeFileResult of
-                Right _ -> putStrLn "\nWeather data saved successfully!."
-                Left e -> putStrLn $ "\nFailed to write weather data to file: " ++ show e
-        Left errorMsg -> putStrLn $ "\nFailed to fetch weather data: " ++ errorMsg
-
