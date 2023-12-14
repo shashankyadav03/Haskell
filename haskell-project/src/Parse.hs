@@ -1,57 +1,14 @@
-{-# LANGUAGE DeriveGeneric #-}
+--Parse.hs
 {-# LANGUAGE OverloadedStrings #-}
-
-module Parse where
+module Parse(getRainStatus, parseWeatherData, parse) where
 
 import GHC.Generics
 import Data.Aeson
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-
--- Define data types to represent the JSON structure
-data Request = Request
-  { requestType :: String
-  , query :: String
-  , language :: String
-  , unit :: String
-  } deriving (Generic, Show)
-
-data Location = Location
-  { name :: String
-  , country :: String
-  , region :: String
-  , lat :: String
-  , lon :: String
-  , timezone_id :: String
-  , localtime :: String
-  , localtime_epoch :: Integer
-  , utc_offset :: String
-  } deriving (Generic, Show)
-
-data Current = Current
-  { observation_time :: String
-  , temperature :: Float
-  , weather_code :: Int
-  , weather_icons :: [String]
-  , weather_descriptions :: [String]
-  , wind_speed :: Int
-  , wind_degree :: Int
-  , wind_dir :: String
-  , pressure :: Int
-  , precip :: Float
-  , humidity :: Int
-  , cloudcover :: Int
-  , feelslike :: Int
-  , uv_index :: Int
-  , visibility :: Int
-  , is_day :: String
-  } deriving (Generic, Show)
-
-data WeatherData = WeatherData
-  { request :: Request
-  , location :: Location
-  , current :: Current
-  } deriving (Generic, Show)
+import qualified Data.ByteString.Lazy as BL 
+import Database (connectDB, insertOrUpdateWeather, fetchWeatherInfo,connectAndCreateTable)
+import Types(Request(..), Location(..), Current(..), WeatherData(..), WeatherRecord(..), WeatherInfo(..))
+import Data.List (intercalate)
+-- import System.Console.ANSI(setSGR)
 
 -- Instances for automatic derivation
 instance FromJSON Request where
@@ -71,28 +28,66 @@ getRainStatus precipValue
     | precipValue > 0.4 && precipValue < 0.6 = "May Rain"
     | otherwise = "Raining"
 
-parseWeatherData :: String -> IO (String, Float, Float, String)
+parseWeatherData :: String -> IO (Maybe WeatherRecord, String)
 parseWeatherData filePath = do
-    -- Read the JSON file
-    jsonContents <- B.readFile filePath
-
-    -- Convert strict ByteString to lazy ByteString
-    let lazyJsonContents = BL.fromStrict jsonContents
-
-    -- Parse JSON
-    case eitherDecode lazyJsonContents of
+    jsonContents <- BL.readFile filePath
+    case eitherDecode jsonContents of
         Left err -> do
             putStrLn $ "Error decoding JSON: " ++ err
-            return ("0",0, 0, "0")  -- Return default values or handle the error as needed
+            return (Nothing, "Error decoding JSON")
+            -- Handle the error, perhaps return a default WeatherRecord or exit
         Right weatherData -> do
-            -- Print or process the parsed data as needed
-            let place = name (location weatherData)
-                temp = temperature (current weatherData)
-                preci = precip (current weatherData)
-                rainStatus = getRainStatus preci
-            return (place, temp, preci, rainStatus)
+            let req = request weatherData
+                loc = location weatherData
+                cur = current weatherData
+                place = name (location weatherData)
+                record = WeatherRecord {
+                        wrRequestType = requestType req,
+                        wrQuery = query req,
+                        wrLanguage = language req,
+                        wrUnit = unit req,
+                        wrLocationName = name loc,
+                        wrCountry = country loc,
+                        wrRegion = region loc,
+                        wrLat = lat loc,
+                        wrLon = lon loc,
+                        wrTimezoneId = timezone_id loc,
+                        wrLocaltime = localtime loc,
+                        wrLocaltimeEpoch = localtime_epoch loc,
+                        wrUtcOffset = utc_offset loc,
+                        wrObservationTime = observation_time cur,
+                        wrTemperature = temperature cur,
+                        wrWeatherCode = weather_code cur,
+                        wrWeatherIcons = intercalate ", " (weather_icons cur),  -- Convert list to string
+                        wrWeatherDescriptions = intercalate ", " (weather_descriptions cur), -- Convert list to string
+                        wrWindSpeed = wind_speed cur,
+                        wrWindDegree = wind_degree cur,
+                        wrWindDir = wind_dir cur,
+                        wrPressure = pressure cur,
+                        wrPrecip = precip cur,
+                        wrHumidity = humidity cur,
+                        wrCloudcover = cloudcover cur,
+                        wrFeelslike = feelslike cur,
+                        wrUvIndex = uv_index cur,
+                        wrVisibility = visibility cur,
+                        wrIsDay = is_day cur
+                      }
+            return (Just record, place)
 
-parse :: IO (String, Float, String)
+parse :: IO ()
 parse = do
-    (place, temp, preci, rainStatus) <- parseWeatherData "data/response.json"
-    return (place,temp,rainStatus) 
+    (maybeRecord, place) <- parseWeatherData "data/response.json"
+    conn <- connectDB
+    case maybeRecord of
+        Just record -> insertOrUpdateWeather conn record
+        Nothing -> putStrLn "\nNo record to insert/update due to parsing error"
+    maybeWeatherInfo <- fetchWeatherInfo conn place
+    case maybeWeatherInfo of
+        Just weatherInfo -> do
+            let precipitation = exprecipitation weatherInfo
+                temp_rature = extemperature weatherInfo
+                rainStatus = getRainStatus precipitation
+            putStrLn $ "\nChecking places to visit in " ++ show place ++ " with temperature = " ++ show temp_rature ++", Rain Status = " ++ show rainStatus
+            connectAndCreateTable conn place rainStatus temp_rature
+            putStrLn "\nHave a cracking time!"
+        Nothing -> putStrLn "No data found for the specified location"

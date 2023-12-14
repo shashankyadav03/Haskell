@@ -27,8 +27,8 @@ library
   exposed-modules:
       Database
       Fetch
-      Lib
       Parse
+      Types
       Main
   other-modules:
       Paths_haskell_project
