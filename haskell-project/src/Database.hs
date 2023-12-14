@@ -12,6 +12,7 @@ module Database
   , queryCityInfoTable
   , queryActivityInfoTable
   , fetchWeatherInfo
+  , getDbTime
   ) where
 
 import Database.SQLite.Simple
@@ -72,6 +73,12 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
 connectDB :: IO Connection
 connectDB = open "testcsv.db"
 
+getDbTime :: Connection -> String -> IO (Maybe String)
+getDbTime conn location = do
+    let sql = "SELECT wrLocaltime FROM weather_info WHERE wrLocationName = ? LIMIT 1"
+    rows <- query conn sql (Only location) :: IO [Only String]
+    return $ listToMaybe $ map fromOnly rows
+
 insertOrUpdateWeather :: Connection -> WeatherRecord -> IO ()
 insertOrUpdateWeather conn record = do
     -- Check if the city already exists
@@ -84,6 +91,7 @@ insertOrUpdateWeather conn record = do
                    \wrWindDegree INTEGER, wrWindDir TEXT, wrPressure INTEGER, wrPrecip REAL, \
                    \wrHumidity INTEGER, wrCloudcover INTEGER, wrFeelslike INTEGER, \
                    \wrUvIndex INTEGER, wrVisibility INTEGER, wrIsDay TEXT)"
+    putStrLn "Checking if City Exists..."
     cityExists <- query conn "SELECT EXISTS(SELECT 1 FROM weather_info WHERE wrLocationName = ? LIMIT 1)" (Only (wrLocationName record)) :: IO [Only Int]
     let params = [ ":rtype" := wrRequestType record
                  , ":qry" := wrQuery record
@@ -117,6 +125,7 @@ insertOrUpdateWeather conn record = do
                  ]
     case cityExists of
         [Only 1] -> do
+            putStrLn "City Already present\nUpdating..."
             -- Update the existing record
             executeNamed conn "UPDATE weather_info SET \
                                \wrRequestType = :rtype, wrQuery = :qry, wrLanguage = :lang, wrUnit = :unit, \
@@ -130,6 +139,7 @@ insertOrUpdateWeather conn record = do
                                \WHERE wrLocationName = :locname" params
             putStrLn "Current City Updated!!"
         [Only 0] -> do
+            putStrLn "City Not present\nInserting..."
             -- Insert new record
             executeNamed conn "INSERT INTO weather_info (wrRequestType, wrQuery, wrLanguage, wrUnit, \
                                \wrLocationName, wrCountry, wrRegion, wrLat, wrLon, wrTimezoneId, \
