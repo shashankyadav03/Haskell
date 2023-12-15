@@ -1,49 +1,18 @@
 --Main.hs
-module Main(main, getLocation, fetchDataAndProcess) where
+module Main(main, getLocation) where
 -- Importing Modules
-import Fetch (fetchWeatherData)
+import Fetch (fetchDataAndProcess)
 import Parse (parse)
+import Lib (getLocation)
 import System.Environment (getArgs)
 import Control.Monad.Except (runExceptT)
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.ByteString.Lazy as B
-import Control.Exception (try, IOException)
 import Data.Time.Clock
 import Data.Time.Format
 import Database (connectDB, getDbTime)
 import Control.Monad (join)
-import Data.Char (toUpper, toLower)
-import Data.List (intercalate)
 
--- Function get location
-getLocation :: [String] -> String
-getLocation args = case args of
-    [] -> "London"  -- Default to London if no arguments are provided
-    [loc] -> capitalizeWords loc   
-    _ -> "\nUsage: WeatherWander <LOCATION>"
-
--- Function to capitalize each word in a string
-capitalizeWords :: String -> String
-capitalizeWords = intercalate " " . map capitalizeWord . words
-  where
-    capitalizeWord :: String -> String
-    capitalizeWord [] = []
-    capitalizeWord (x:xs) = toUpper x : map toLower xs
-
--- Function to get Data from API
-fetchDataAndProcess :: String -> IO ()
-fetchDataAndProcess location = do
-    putStrLn "Fetching Data from API......"
-    result <- runExceptT $ fetchWeatherData location
-    case result of
-        Right response -> do
-            putStrLn "Data Fetched from API!"
-            putStrLn "Saving Fetched data to file....."
-            writeFileResult <- try (B.writeFile "data/response.json" response) :: IO (Either IOException ())
-            case writeFileResult of
-                Right _ -> putStrLn "\nWeather data saved successfully!."
-                Left e -> putStrLn $ "\nFailed to write weather data to file: " ++ show e
-        Left errorMsg -> putStrLn $ "\nFailed to fetch weather data: " ++ errorMsg
 
 -- Main Function
 main :: IO ()
@@ -68,9 +37,13 @@ main = do
                     parse 1 location
                 else do
                     putStrLn "API time is more than an hour ago"
-                    fetchDataAndProcess location 
-                    parse 0 location
+                    fetchResult <- fetchDataAndProcess location
+                    case fetchResult of
+                        Right _ -> parse 0 location -- proceed with parsing
+                        Left errMsg -> putStrLn errMsg -- handle the error 
         Nothing -> do
-            putStrLn "No data found for the specified location"
-            fetchDataAndProcess location
-            parse 0 location
+            putStrLn "No data found for the specified location in our database"
+            fetchResult <- fetchDataAndProcess location
+            case fetchResult of
+                Right _ -> parse 0 location -- proceed with parsing
+                Left errMsg -> putStrLn errMsg -- handle the error

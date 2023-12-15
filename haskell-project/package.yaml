@@ -2,9 +2,9 @@ name:                haskell-project
 version:             0.1.0.0
 github:              "githubuser/haskell-project"
 license:             BSD-3-Clause
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2023 Author name here"
+author:              "Shashank Yadav"
+maintainer:          "s.yadav@qmul.ac.uk"
+copyright:           "2023 Shashank Yadav"
 
 extra-source-files:
 - README.md

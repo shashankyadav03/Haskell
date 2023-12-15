@@ -29,6 +29,7 @@ library
       Fetch
       Parse
       Types
+      Lib
       Main
   other-modules:
       Paths_haskell_project
