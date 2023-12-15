@@ -2,9 +2,9 @@ name:                haskell-project
 version:             0.1.0.0
 github:              "githubuser/haskell-project"
 license:             BSD-3-Clause
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2023 Author name here"
+author:              "Shashank Yadav"
+maintainer:          "s.yadav@qmul.ac.uk"
+copyright:           "2023 Shashank Yadav"
 
 extra-source-files:
 - README.md
@@ -17,11 +17,21 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-project#readme>
+description:         Please see the README on GitHub at <https://github.com/shashankyadav03/WeatherWander/#readme>
 
 dependencies:
 - base >= 4.7 && < 5
-
+- transformers >= 0.5 && < 0.6
+- aeson
+- http-conduit
+- mtl
+- bytestring
+- sqlite-simple >= 0.4 && < 0.5
+- cassava
+- vector
+- split
+- ansi-terminal
+- time
 ghc-options:
 - -Wall
 - -Wcompat
@@ -34,7 +44,13 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  source-dirs: src
+  source-dirs: 
+  - src
+  - app
+  dependencies: 
+  - bytestring
+  - http-conduit
+  - sqlite-simple
 
 executables:
   haskell-project-exe:
