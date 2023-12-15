@@ -1,17 +1,15 @@
 --Parse.hs
 {-# LANGUAGE OverloadedStrings #-}
 module Parse(getRainStatus, parseWeatherData, parse) where
-
+-- Importing Modules
 import GHC.Generics
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL 
 import Database (connectDB, insertOrUpdateWeather, fetchWeatherInfo,connectAndCreateTable)
 import Types(Request(..), Location(..), Current(..), WeatherData(..), WeatherRecord(..), WeatherInfo(..))
 import Data.List (intercalate)
--- import Data.ByteString (putStrLn)
--- import System.Console.ANSI(setSGR)
 
--- Instances for automatic derivation
+-- Defining Instances 
 instance FromJSON Request where
     parseJSON = withObject "Request" $ \v -> Request
         <$> v .: "type"
@@ -29,6 +27,7 @@ getRainStatus precipValue
     | precipValue > 0.4 && precipValue < 0.6 = "May Rain"
     | otherwise = "Raining"
 
+--Function for Parsing
 parseWeatherData :: String -> IO (Maybe WeatherRecord)
 parseWeatherData filePath = do
     putStrLn "Reading......"
@@ -77,8 +76,10 @@ parseWeatherData filePath = do
                       }
             return (Just record)
 
+--Main Parse Function
 parse :: Int -> String -> IO ()
 parse val place= do
+    -- If value is 0, it uses json file saved from API call
     if val == 0 then 
         do 
             putStrLn "Fetching saved file"
@@ -99,6 +100,7 @@ parse val place= do
                     connectAndCreateTable conn place rainStatus temp_rature
                     putStrLn "\nHave a cracking time!"
                 Nothing -> putStrLn "No data found for the specified location"
+        -- Else extracts data from database as its withing 1 hour time frame
         else do
             putStrLn "Conecting Database...."
             conn <- connectDB
