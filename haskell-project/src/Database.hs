@@ -84,6 +84,15 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
 -- Function for Extracting time from weather_info Table
 getDbTime :: Connection -> String -> IO (Maybe String)
 getDbTime conn location = do
+    execute_ conn "CREATE TABLE IF NOT EXISTS weather_info (\
+                   \wrRequestType TEXT, wrQuery TEXT, wrLanguage TEXT, wrUnit TEXT, \
+                   \wrLocationName TEXT, wrCountry TEXT, wrRegion TEXT, wrLat TEXT, wrLon TEXT, \
+                   \wrTimezoneId TEXT, wrLocaltime TEXT, wrLocaltimeEpoch INTEGER, wrUtcOffset TEXT, \
+                   \wrObservationTime TEXT, wrTemperature REAL, wrWeatherCode INTEGER, \
+                   \wrWeatherIcons TEXT, wrWeatherDescriptions TEXT, wrWindSpeed INTEGER, \
+                   \wrWindDegree INTEGER, wrWindDir TEXT, wrPressure INTEGER, wrPrecip REAL, \
+                   \wrHumidity INTEGER, wrCloudcover INTEGER, wrFeelslike INTEGER, \
+                   \wrUvIndex INTEGER, wrVisibility INTEGER, wrIsDay TEXT)"
     let sql = "SELECT wrLocaltime FROM weather_info WHERE wrLocationName = ? LIMIT 1"
     rows <- query conn sql (Only location) :: IO [Only String]
     return $ listToMaybe $ map fromOnly rows
@@ -98,15 +107,6 @@ getCityNames conn = do
 insertOrUpdateWeather :: Connection -> WeatherRecord -> IO ()
 insertOrUpdateWeather conn record = do
     -- Check if the city already exists
-    execute_ conn "CREATE TABLE IF NOT EXISTS weather_info (\
-                   \wrRequestType TEXT, wrQuery TEXT, wrLanguage TEXT, wrUnit TEXT, \
-                   \wrLocationName TEXT, wrCountry TEXT, wrRegion TEXT, wrLat TEXT, wrLon TEXT, \
-                   \wrTimezoneId TEXT, wrLocaltime TEXT, wrLocaltimeEpoch INTEGER, wrUtcOffset TEXT, \
-                   \wrObservationTime TEXT, wrTemperature REAL, wrWeatherCode INTEGER, \
-                   \wrWeatherIcons TEXT, wrWeatherDescriptions TEXT, wrWindSpeed INTEGER, \
-                   \wrWindDegree INTEGER, wrWindDir TEXT, wrPressure INTEGER, wrPrecip REAL, \
-                   \wrHumidity INTEGER, wrCloudcover INTEGER, wrFeelslike INTEGER, \
-                   \wrUvIndex INTEGER, wrVisibility INTEGER, wrIsDay TEXT)"
     putStrLn "Checking if City Exists..."
     cityExists <- query conn "SELECT EXISTS(SELECT 1 FROM weather_info WHERE wrLocationName = ? LIMIT 1)" (Only (wrLocationName record)) :: IO [Only Int]
     let params = [ ":rtype" := wrRequestType record
