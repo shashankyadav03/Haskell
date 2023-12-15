@@ -72,7 +72,7 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
           cityNames <- getCityNames conn
           putStrLn "Data for city entered is not present in database\n\nPlease select from below cities:"
           mapM_ putStrLn cityNames
-          putStrLn "\nChoose New city and"
+          putStrLn "\nChoose New city and Try again"
     _  -> forM_ result1 $ \(cityResult, activityIdResult) -> do
             activitiesStr <- queryActivityInfoTable conn activityIdResult
             putStrLn $ "\nCity: " ++ cityResult
