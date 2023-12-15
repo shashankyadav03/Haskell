@@ -70,7 +70,7 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
   case result1 of
     [] -> do
           cityNames <- getCityNames conn
-          putStrLn "Data for city entered is not present in database\n\nPlease select from below cities:"
+          putStrLn "Apologies for inconvenience!\nData for city entered is not present in our database\nWe are still expanding our horizon\n\nPlease select from below list of popular cities:"
           mapM_ putStrLn cityNames
           putStrLn "\nChoose New city and Try again"
     _  -> forM_ result1 $ \(cityResult, activityIdResult) -> do
