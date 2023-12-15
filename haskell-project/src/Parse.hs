@@ -112,5 +112,5 @@ parse val place= do
                         rainStatus = getRainStatus precipitation
                     putStrLn $ "\nChecking places to visit in " ++ show place ++ " with temperature = " ++ show temp_rature ++", Rain Status = " ++ show rainStatus
                     connectAndCreateTable conn place rainStatus temp_rature
-                    putStrLn "\nHave a cracking time!"
+                    putStrLn "Have a great time!\n"
                 Nothing -> putStrLn "No data found for the specified location"

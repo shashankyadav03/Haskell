@@ -67,12 +67,18 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
   insertCityDataFromCSV conn
   insertActivityInfoFromCSV conn
   result1 <- queryCityInfoTable conn cityName rainStatus tempResult
-  forM_ result1 $ \(cityResult, activityIdResult) -> do
-    activitiesStr <- queryActivityInfoTable conn activityIdResult
-    putStrLn $ "\nCity: " ++ cityResult
-    putStrLn "\nActivities: " 
-    let activityList = splitOn ", " activitiesStr
-    mapM_ putStrLn activityList
+  case result1 of
+    [] -> do
+          cityNames <- getCityNames conn
+          putStrLn "Data for city entered is not present in database\n\nPlease select from below cities:"
+          mapM_ putStrLn cityNames
+          putStrLn "\nChoose New city and"
+    _  -> forM_ result1 $ \(cityResult, activityIdResult) -> do
+            activitiesStr <- queryActivityInfoTable conn activityIdResult
+            putStrLn $ "\nCity: " ++ cityResult
+            putStrLn "\nActivities: " 
+            let activityList = splitOn ", " activitiesStr
+            mapM_ putStrLn activityList
   close conn
 
 -- Function for Extracting time from weather_info Table
@@ -81,6 +87,12 @@ getDbTime conn location = do
     let sql = "SELECT wrLocaltime FROM weather_info WHERE wrLocationName = ? LIMIT 1"
     rows <- query conn sql (Only location) :: IO [Only String]
     return $ listToMaybe $ map fromOnly rows
+
+-- Function for Extracting city names from cityInfo Table
+getCityNames :: Connection -> IO [String]
+getCityNames conn = do
+    rows <- query_ conn "SELECT DISTINCT City FROM city_info" :: IO [Only String]
+    return $ map fromOnly rows
 
 -- Function for Insert or update weather_info table
 insertOrUpdateWeather :: Connection -> WeatherRecord -> IO ()
