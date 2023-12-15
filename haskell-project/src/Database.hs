@@ -12,8 +12,10 @@ module Database
   , queryCityInfoTable
   , queryActivityInfoTable
   , fetchWeatherInfo
+  , getDbTime
   ) where
 
+--Importing Modules
 import Database.SQLite.Simple
 import Database.SQLite.Simple.ToField
 import Control.Exception (bracket)
@@ -26,6 +28,7 @@ import Control.Monad (forM_)
 import Data.Maybe (listToMaybe)
 import Types(WeatherRecord(..), WeatherInfo(..), CityInfo(..), ActivityInfo(..))
 
+-- Defining Instances 
 instance FromRow CityInfo where
   fromRow = CityInfo <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 instance FromRow ActivityInfo where
@@ -50,10 +53,13 @@ instance ToRow CityInfo where
 instance ToRow ActivityInfo where
   toRow (ActivityInfo a b) = toRow (a, b)
 
--- Connect to SQLite database, create table, and insert data
+-- Connect to Database
+connectDB :: IO Connection
+connectDB = open "testcsv.db"
+
+-- Create table, and insert data
 connectAndCreateTable :: Connection -> String -> String -> Float -> IO ()
 connectAndCreateTable conn cityName rainStatus tempResult = do
-  -- conn <- open "testcsv.db"
   execute_ conn "DROP TABLE IF EXISTS city_info"
   execute_ conn "DROP TABLE IF EXISTS activity_info"
   execute_ conn "CREATE TABLE IF NOT EXISTS activity_info (Activity_Id TEXT PRIMARY KEY, Activities TEXT)"
@@ -61,20 +67,23 @@ connectAndCreateTable conn cityName rainStatus tempResult = do
   insertCityDataFromCSV conn
   insertActivityInfoFromCSV conn
   result1 <- queryCityInfoTable conn cityName rainStatus tempResult
-  forM_ result1 $ \(cityResult, activityIdResult) -> do
-    activitiesStr <- queryActivityInfoTable conn activityIdResult
-    putStrLn $ "\nCity: " ++ cityResult
-    putStrLn "\nActivities: " 
-    let activityList = splitOn ", " activitiesStr
-    mapM_ putStrLn activityList
+  case result1 of
+    [] -> do
+          cityNames <- getCityNames conn
+          putStrLn "Apologies for inconvenience!\nData for city entered is not present in our database\nWe are still expanding our horizon\n\nPlease select from below list of popular cities:"
+          mapM_ putStrLn cityNames
+          putStrLn "\nChoose New city and Try again"
+    _  -> forM_ result1 $ \(cityResult, activityIdResult) -> do
+            activitiesStr <- queryActivityInfoTable conn activityIdResult
+            putStrLn $ "\nCity: " ++ cityResult
+            putStrLn "\nActivities: " 
+            let activityList = splitOn ", " activitiesStr
+            mapM_ putStrLn activityList
   close conn
 
-connectDB :: IO Connection
-connectDB = open "testcsv.db"
-
-insertOrUpdateWeather :: Connection -> WeatherRecord -> IO ()
-insertOrUpdateWeather conn record = do
-    -- Check if the city already exists
+-- Function for Extracting time from weather_info Table
+getDbTime :: Connection -> String -> IO (Maybe String)
+getDbTime conn location = do
     execute_ conn "CREATE TABLE IF NOT EXISTS weather_info (\
                    \wrRequestType TEXT, wrQuery TEXT, wrLanguage TEXT, wrUnit TEXT, \
                    \wrLocationName TEXT, wrCountry TEXT, wrRegion TEXT, wrLat TEXT, wrLon TEXT, \
@@ -84,6 +93,21 @@ insertOrUpdateWeather conn record = do
                    \wrWindDegree INTEGER, wrWindDir TEXT, wrPressure INTEGER, wrPrecip REAL, \
                    \wrHumidity INTEGER, wrCloudcover INTEGER, wrFeelslike INTEGER, \
                    \wrUvIndex INTEGER, wrVisibility INTEGER, wrIsDay TEXT)"
+    let sql = "SELECT wrLocaltime FROM weather_info WHERE wrLocationName = ? LIMIT 1"
+    rows <- query conn sql (Only location) :: IO [Only String]
+    return $ listToMaybe $ map fromOnly rows
+
+-- Function for Extracting city names from cityInfo Table
+getCityNames :: Connection -> IO [String]
+getCityNames conn = do
+    rows <- query_ conn "SELECT DISTINCT City FROM city_info" :: IO [Only String]
+    return $ map fromOnly rows
+
+-- Function for Insert or update weather_info table
+insertOrUpdateWeather :: Connection -> WeatherRecord -> IO ()
+insertOrUpdateWeather conn record = do
+    -- Check if the city already exists
+    putStrLn "Checking if City Exists..."
     cityExists <- query conn "SELECT EXISTS(SELECT 1 FROM weather_info WHERE wrLocationName = ? LIMIT 1)" (Only (wrLocationName record)) :: IO [Only Int]
     let params = [ ":rtype" := wrRequestType record
                  , ":qry" := wrQuery record
@@ -117,6 +141,7 @@ insertOrUpdateWeather conn record = do
                  ]
     case cityExists of
         [Only 1] -> do
+            putStrLn "City Already present\nUpdating..."
             -- Update the existing record
             executeNamed conn "UPDATE weather_info SET \
                                \wrRequestType = :rtype, wrQuery = :qry, wrLanguage = :lang, wrUnit = :unit, \
@@ -130,6 +155,7 @@ insertOrUpdateWeather conn record = do
                                \WHERE wrLocationName = :locname" params
             putStrLn "Current City Updated!!"
         [Only 0] -> do
+            putStrLn "City Not present\nInserting..."
             -- Insert new record
             executeNamed conn "INSERT INTO weather_info (wrRequestType, wrQuery, wrLanguage, wrUnit, \
                                \wrLocationName, wrCountry, wrRegion, wrLat, wrLon, wrTimezoneId, \
@@ -142,41 +168,39 @@ insertOrUpdateWeather conn record = do
                                \VALUES (:rtype, :qry, :lang, :unit, :locname, :country, :region, :lat, :lon, :tzid, :ltime, :ltimeEpoch, :utcOff, :obsTime, :temp, :wcode, :wicons, :wdesc, :wspeed, :wdeg, :wdir, :press, :prec, :hum, :cloud, :feels, :uv, :vis, :day)" params
             putStrLn "New City Inserted!!"
         _ -> putStrLn "Error: Unexpected result when checking for existing city"
-    -- records <- query_ conn "SELECT * FROM weather_info" :: IO [WeatherRecord] 
-    -- mapM_ print records
 
-
+-- Function to fetch data from weather_info table
 fetchWeatherInfo :: Connection -> String -> IO (Maybe WeatherInfo)
 fetchWeatherInfo conn locName = do
     result <- query conn "SELECT wrLocationName, wrPrecip, wrTemperature FROM weather_info WHERE wrLocationName = ? LIMIT 1" (Only locName) :: IO [WeatherInfo]
     return $ listToMaybe result  -- Converts the list to Maybe, Nothing if the list is empty
 
--- Insert City data from CSV into the table
+-- Function to Insert City data from CSV into the table
 insertCityDataFromCSV :: Connection -> IO ()
 insertCityDataFromCSV conn = do
-  csvData <- BL.readFile "cityInfo.csv"
+  csvData <- BL.readFile "data_cities.csv"
   case decodeByName csvData of
     Left err -> putStrLn $ "Error decoding CSV: " ++ err
     Right (header, dataRows) -> do
       executeMany conn "INSERT INTO city_info (Sr_No, City, MinTemp_MaxTemp, MinTemp, MaxTemp, Rain, Activity_Id) VALUES (?, ?, ?, ?, ?, ?, ?)" (V.toList (dataRows :: V.Vector CityInfo))
 
--- Insert Activity data from CSV into the table
+-- Function to Insert Activity data from CSV into the table
 insertActivityInfoFromCSV :: Connection -> IO ()
 insertActivityInfoFromCSV conn = do
-  csvDataActivity <- BL.readFile "activityInfo.csv"
+  csvDataActivity <- BL.readFile "data_activities.csv"
   case decodeByName csvDataActivity of
     Left err -> putStrLn $ "Error decoding CSV: " ++ err
     Right (_, dataRows) ->
       executeMany conn "INSERT INTO activity_info (Activity_Id, Activities) VALUES (?, ?)" (V.toList (dataRows :: V.Vector ActivityInfo))
 
--- Query and return the contents of the table
+-- Function to Query and return the contents of the table
 queryCityInfoTable :: Connection -> String -> String -> Float -> IO [(String, String)]
 queryCityInfoTable conn cityName rainStatus tempResult = do
     let sql = "SELECT City, Activity_Id FROM city_info WHERE City = ? AND Rain = ? AND MinTemp <= ? AND MaxTemp >= ?"
     rows <- query conn sql (cityName, rainStatus, tempResult, tempResult) :: IO [(String, String)]
     return rows
 
--- Query and return the contents of the 'activity_info' table
+-- Function to Query and return the contents of the 'activity_info' table
 queryActivityInfoTable :: Connection -> String -> IO String
 queryActivityInfoTable conn activityIdResult = do
     let sql = "SELECT Activities FROM activity_info WHERE Activity_Id = ?"

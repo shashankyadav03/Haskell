@@ -31,6 +31,7 @@ dependencies:
 - vector
 - split
 - ansi-terminal
+- time
 ghc-options:
 - -Wall
 - -Wcompat

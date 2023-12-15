@@ -11,9 +11,10 @@ module Types
   , Current(..)
   , WeatherData(..)
   ) where
-
+-- Importing Modules
 import GHC.Generics
 
+-- Defining Data Types
 data CityInfo = CityInfo 
   { sr_no :: Int, 
   city :: String, 
